@@ -1,0 +1,25 @@
+https://mido.readthedocs.io/en/latest/
+
+will try to use python3
+
+pipinstall mido
+
+
+
+pip3 install --user --pre python-rtmidi
+
+git clone https://github.com/JuanManuelHuerta/AlgorithmicMusic.git
+
+
+Roadmap:
+
+[*] 1. Buy Midi controller plug to mac, make work wyth synth software
+[*] 2. v.00 Hello world: install mido and pre-reqs read the midi port
+[*] 3. v01  Send audio output on keyboard input using pyaudio
+[ ] 4. v.02 First version of sequencer: recording, tempo, tape, add, edit. Create a keyboard controlled device.
+[ ] 5. v03  First GUI version of sequencer
+[ ] 6. v04 GUI version, key input, sequencer, synthesizer with additive bus
+[ ] 7. Sampler from Audio
+[ ] 8. Song Embeddings
+[ ] 9. Auto sequencer from song embeddings (NN)
+[ ] 10. GPU real time embeddings
