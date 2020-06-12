@@ -15,12 +15,12 @@ tapper_off = 20000
 
 volume = 0.5     # range [0.0, 1.0]
 fs = 44100       # sampling rate, Hz, must be integer
-duration = 0.75   # in seconds, may be float
+duration = 0.05   # in seconds, may be float
 chunk = int(fs/2)
 bpm = 120
 signature = 4                # beats per minute / beats per measure
 
-def play_note(note_value):
+def play_note(note_value,duration):
     note_mapper = (2.0**((note_value-69)/12.0))*440.0
     samples = np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs).astype(np.float32)
     for i in range(tapper_off):
@@ -61,9 +61,11 @@ def arpeggiator_sequencer(active_notes):
         current_buffer =  list(sorted(active_notes))
         while len(current_buffer)>0:
             this_note = current_buffer.pop(0)
-            z=threading.Thread( target = play_note, args=(this_note,))
-            z.start()
-            time.sleep(spacing)
+            print("playing",this_note)
+            #z=threading.Thread( target = play_note, args=(this_note,))
+            #z.start()
+            play_note(this_note,spacing)
+            #time.sleep(spacing)
             
         
         
@@ -74,7 +76,7 @@ def arpeggiator_listener(active_notes):
         if msg.type == 'note_on':
             active_notes.add(msg.note)
             print(active_notes)
-            play_note(msg.note)
+            #play_note(msg.note)
         if msg.type == 'note_off':
             try:
                 active_notes.remove(msg.note)
