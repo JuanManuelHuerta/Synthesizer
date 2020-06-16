@@ -26,12 +26,12 @@ my_queue=[]
 waves = {}
 DO_SIGNAL = False
 active_notes = set()
-
+this_active_notes = set()
 
 
 def init_soundwaves():
     volume = 0.3     # 
-    duration = 0.1   # in seconds, may be float
+    duration = 0.05   # in seconds, may be float
     decay=-0.000001
     for i in range(22,122):
         note_mapper = (2.0**((i-69)/12.0))*440.0
@@ -41,6 +41,7 @@ def init_soundwaves():
         kernel=signal.sawtooth(2*np.pi*np.arange(fs*duration)*note_mapper/fs)
         samples = (volume* kernel ).astype(np.float32)
         waves[i]=samples
+    waves[0]=0.0*waves[23]
 
 
 def signal_processor(data):
@@ -53,22 +54,19 @@ def play_audio(Qout):
     # open output stream
     ostream = p.open(format=pyaudio.paFloat32, channels=1, rate=int(fs),output=True,output_device_index=None)
     # play audio
+
+            
     while ( 1 ):
         try:
+
             #data = my_queue.pop(0)
+            Qout.put(synth_engine())
             data = Qout.get()
-        except:
-            continue
-        if data=="EOT" :
-            continue
-
-        if DO_SIGNAL is True:
-            data = signal_processor(data)
-
-        try:
+            print("Im here")
             ostream.write( data.astype(np.float32).tostring() )
         except:
             continue
+
     ostream.close()
 
 def execute_note(note_value,Qout,event_type):
@@ -80,8 +78,9 @@ def execute_note(note_value,Qout,event_type):
 
 
 def synth_engine(Qout):
-    while 1:
-        this_active_notes = active_notes.copy()
+    print(" and here...")
+    this_active_notes = active_notes.copy()
+    if len(this_active_notes)  > 0:
         data = None
         for note in this_active_notes:
             print(" synthesis of  ", note, " in ", this_active_notes)
@@ -89,13 +88,9 @@ def synth_engine(Qout):
                 data = waves[note]
             else:
                 data += waves[note]
-        if Qout.empty() is False and data is not None:
-            data2 = Qout.get()
-            Qout.put(data+data2.astype(np.float32))
-        elif data is not None and Qout.empty() is True:
-                Qout.put(data)
-        else:
-            print("Dealing with empty buffer")
+        return data
+    else:
+        print("Dealing with empty buffer")
 
 
 def listen_midi(Qout):
@@ -119,18 +114,18 @@ def main():
     # initialize stop_flag
     stop_flag = threading.Event()
 
-    # initialize threads
+
     t_listen_midi = threading.Thread(target=listen_midi,args = (Qout,))
-    #t_put_data = threading.Thread(target = put_data,   args = (Qout, ptrain, stop_flag  ))
     t_play_audio = threading.Thread(target = play_audio, args = (Qout,))
-    t_synth_engine = threading.Thread(target = synth_engine, args = (Qout,))
+    #t_synth_engine = threading.Thread(target = synth_engine, args = (Qout,))
     #t_signal_process = threading.Thread(target = signal_process, args = ( Qin, Qdata, pulse_a, Nseg, Nplot, fs, maxdist, temperature, functions, stop_flag))
-    # start threads
+
+
     t_listen_midi.start()
-    #t_put_data.start()
-    t_synth_engine.start()
+    #t_synth_engine.start()
     t_play_audio.start()
-    #t_signal_process.start()
+
+
     return stop_flag
 
 
