@@ -11,7 +11,7 @@ from scipy import interpolate
 from numpy import *
 import threading,time, queue
 import itertools
-
+import time
 
 ##  This synthesizer will have n voices each run by an oscilator launched on its own thread.
 ## Synthesize 1 segment of note, do not apply envelopes and do not partition
@@ -31,7 +31,7 @@ this_active_notes = set()
 
 def init_soundwaves():
     volume = 0.3     # 
-    duration = 0.05   # in seconds, may be float
+    duration = 0.15   # in seconds, may be float
     decay=-0.000001
     for i in range(22,122):
         note_mapper = (2.0**((i-69)/12.0))*440.0
@@ -53,19 +53,25 @@ def play_audio(Qout):
     p = pyaudio.PyAudio()
     # open output stream
     ostream = p.open(format=pyaudio.paFloat32, channels=1, rate=int(fs),output=True,output_device_index=None)
-    # play audio
-
-            
-    while ( 1 ):
-        try:
-
-            #data = my_queue.pop(0)
-            Qout.put(synth_engine())
-            data = Qout.get()
-            print("Im here")
+    while True:
+        data = None
+        if len(active_notes)>0:
+            data = synth_engine(Qout)
+        if data is not None:
             ostream.write( data.astype(np.float32).tostring() )
-        except:
-            continue
+        else:
+            time.sleep(0.15)
+            
+
+#    try:
+#            #data = my_queue.pop(0)
+#        if len(active_notes) > 0:
+#            Qout.put(synth_engine())
+#        if not Queue.empty() :
+#            data = Qout.get()
+#            ostream.write( data.astype(np.float32).tostring() )
+#    except:
+#        pass
 
     ostream.close()
 
@@ -78,23 +84,21 @@ def execute_note(note_value,Qout,event_type):
 
 
 def synth_engine(Qout):
-    print(" and here...")
     this_active_notes = active_notes.copy()
+    data = None
     if len(this_active_notes)  > 0:
-        data = None
         for note in this_active_notes:
             print(" synthesis of  ", note, " in ", this_active_notes)
             if data is None:
                 data = waves[note]
             else:
                 data += waves[note]
-        return data
     else:
         print("Dealing with empty buffer")
+    return data
 
 
 def listen_midi(Qout):
-    print("Im here")
     for msg in mido.open_input():
         print(msg)
         if msg.type == 'note_on':
