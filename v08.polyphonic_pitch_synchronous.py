@@ -40,10 +40,12 @@ def init_soundwaves():
         note_mapper = (2.0**((i-69)/12.0))*440.0
         gain=np.exp(decay*np.arange(fs*duration))
         #kernel=np.sign(np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs))
-        #kernel=np.sign(np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs))
-        kernel=signal.sawtooth(2*np.pi*np.arange(fs*duration)*note_mapper/fs)
+        kernel=np.sign(np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs))
+        #kernel=signal.sawtooth(2*np.pi*np.arange(fs*duration)*note_mapper/fs)
         samples = (volume* kernel ).astype(np.float32)
-        frequency[i]=int(fs/2.0*np.pi*note_mapper)
+        #frequency[i]=int(fs/2.0*np.pi*note_mapper)
+        frequency[i]=int(fs/note_mapper)
+        print(frequency[i],note_mapper)
         waves[i]=samples
         phase[i]=0
     waves[0]=0.0*waves[23]
@@ -96,10 +98,11 @@ def synth_engine(Qout):
             print(" synthesis of  ", note, " in ", this_active_notes)
             print(phase[note])
             if data is None:
-                data = waves[note][phase[note]:phase[note]+samples_per_chunk]
+                data = waves[note][phase[note]:phase[note]+samples_per_chunk+1]
             else:
-                data += waves[note][phase[note]:phase[note]+samples_per_chunk]
+                data += waves[note][phase[note]:phase[note]+samples_per_chunk+1]
             phase[note]=(phase[note]+samples_per_chunk)%frequency[note]
+                
     else:
         print("Dealing with empty buffer")
     return data
