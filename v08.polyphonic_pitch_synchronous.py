@@ -36,15 +36,17 @@ def init_soundwaves():
     volume = 0.3     # 
     duration = sample_duration   # in seconds, may be float
     decay=-0.000001
+    
     for i in range(22,122):
         note_mapper = (2.0**((i-69)/12.0))*440.0
         gain=np.exp(decay*np.arange(fs*duration))
+        time=np.arange(fs*duration)+np.random.normal(0.0,0.0001*note_mapper,fs)
+        #kernel=np.sin(2*np.pi*time*note_mapper/fs)
         #kernel=np.sign(np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs))
-        kernel=np.sign(np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs))
-        #kernel=signal.sawtooth(2*np.pi*np.arange(fs*duration)*note_mapper/fs)
+        kernel=signal.sawtooth(2*np.pi*time*note_mapper/fs)
         samples = (volume* kernel ).astype(np.float32)
         #frequency[i]=int(fs/2.0*np.pi*note_mapper)
-        frequency[i]=int(fs/note_mapper)
+        frequency[i]=int(100.0*fs/note_mapper)
         print(frequency[i],note_mapper)
         waves[i]=samples
         phase[i]=0
@@ -87,6 +89,7 @@ def execute_note(note_value,Qout,event_type):
         active_notes.add(note_value)
     if event_type == 'note_off':
         active_notes.remove(note_value)
+        phase[note_value]=0
     print("Active notes:", active_notes)
 
 
