@@ -23,21 +23,32 @@ my_queue=[]
 waves = {}
 DO_SIGNAL = False
 
+
+configurations ={'base':{'decay':-0.0001, 'kernel':'FM', 'duration':1.0, 'apply_gain':True}}
+
+
+
 def init_soundwaves():
     volume = 1.0     # range [0.0, 1.0]
-    duration = 1.0   # in seconds, may be float
-    decay=-0.000001
+    duration = configurations['base']['duration']   # in seconds, may be float
+    decay=-0.0001
     for i in range(22,122):
         note_mapper = (2.0**((i-69)/12.0))*440.0
         gain=np.exp(decay*np.arange(fs*duration))
 
         #kernel=np.sign(np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs))
         #kernel=np.sign(np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs))
-        #kernel=signal.sawtooth(2*np.pi*np.arange(fs*duration)*note_mapper/fs)
-        kernel=np.sin((2*np.pi*np.arange(fs*duration)*note_mapper)/fs+ np.sin(2*np.pi*np.arange(fs*duration)*note_mapper*0.314/fs))
-        
 
-        samples = (volume*(1.0-gain)*gain* kernel ).astype(np.float32)
+        if configurations['base']['kernel']=='FM':
+            kernel=np.sin((2*np.pi*np.arange(fs*duration)*note_mapper)/fs+ np.sin(2*np.pi*np.arange(fs*duration)*note_mapper*0.314/fs))
+        else:
+            kernel=signal.sawtooth(2*np.pi*np.arange(fs*duration)*note_mapper/fs)            
+
+    
+        if configurations['base']['apply_gain'] is True:
+            samples = (volume*(1.0-gain)*gain* kernel ).astype(np.float32)
+        else:
+            samples = (volume* kernel ).astype(np.float32)
 
         print(len(samples))
         waves[i]=np.split(samples,int(chunks_per_second*duration))
