@@ -17,21 +17,21 @@ import itertools
 
 #Globals
 fs = 44100           # sampling rate, Hz, must be integer
-chunks_per_second = 10
+chunks_per_second = 50
 delay = 0.1*fs  # seconds * fs
 my_queue=[]
 waves = {}
 DO_SIGNAL = False
 
 
-configurations ={'base':{'decay':-0.0001, 'kernel':'FM', 'duration':1.0, 'apply_gain':True}}
+configurations ={'base':{'decay':-0.00019, 'kernel':'FM', 'duration':1.0, 'apply_gain':True, 'oscillatory_range':0.99, 'oscillatory_speed':0.0314}}
 
 
 
 def init_soundwaves():
     volume = 1.0     # range [0.0, 1.0]
     duration = configurations['base']['duration']   # in seconds, may be float
-    decay=-0.0001
+    decay=configurations['base']['decay']
     for i in range(22,122):
         note_mapper = (2.0**((i-69)/12.0))*440.0
         gain=np.exp(decay*np.arange(fs*duration))
@@ -40,7 +40,9 @@ def init_soundwaves():
         #kernel=np.sign(np.sin(2*np.pi*np.arange(fs*duration)*note_mapper/fs))
 
         if configurations['base']['kernel']=='FM':
-            kernel=np.sin((2*np.pi*np.arange(fs*duration)*note_mapper)/fs+ np.sin(2*np.pi*np.arange(fs*duration)*note_mapper*0.314/fs))
+            freq_depth  = configurations['base']['oscillatory_range']
+            freq_oscil  =  configurations['base']['oscillatory_speed']
+            kernel=np.sin((2*np.pi*np.arange(fs*duration)*note_mapper)/fs+ freq_depth*np.sin(2*np.pi*np.arange(fs*duration)*note_mapper*freq_oscil/fs))
         else:
             kernel=signal.sawtooth(2*np.pi*np.arange(fs*duration)*note_mapper/fs)            
 
@@ -128,7 +130,7 @@ def main():
     t_listen_midi = threading.Thread(target=listen_midi,args = (Qout,))
     #t_put_data = threading.Thread(target = put_data,   args = (Qout, ptrain, stop_flag  ))
     t_play_audio = threading.Thread(target = play_audio, args = (Qout,))
-    #t_signal_process = threading.Thread(target = signal_process, args = ( Qin, Qdata, pulse_a, Nseg, Nplot, fs, maxdist, temperature, functions, stop_flag))
+    #t_signal_process = threading.Thread(target = signal_processor, args = ( Qin, Qdata, pulse_a, Nseg, Nplot, fs, maxdist, temperature, functions, stop_flag))
     # start threads
     t_listen_midi.start()
     #t_put_data.start()
